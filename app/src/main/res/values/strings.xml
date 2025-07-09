@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="description">Description</string>
+    <string name="temperature">Temperature</string>
+    <string name="datetime">DateTime</string>
+    <string name="enter_city_name">Enter City Name</string>
+    <string name="get_weather">Get Weather</string>
+    <string name="get_weather_by_location">Get Weather by Location</string>
+    <string name="time">Time</string>
+    <string name="weather">Weather</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="logout">Logout</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    <string name="do_not_have_account">do_not_have_account</string>
+
+</resources>

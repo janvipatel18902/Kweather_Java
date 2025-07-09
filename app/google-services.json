@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "472391829864",
+    "project_id": "kweather-11244",
+    "storage_bucket": "kweather-11244.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472391829864:android:951b9512ad7f2e3c92eedd",
+        "android_client_info": {
+          "package_name": "com.example.weatherapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjEY8eQgAfnIlgcyQxk2kNYTilmqCUb84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
