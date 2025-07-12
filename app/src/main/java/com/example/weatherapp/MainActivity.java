@@ -19,7 +19,8 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.weatherapp.adapters.ForecastAdapter;
+import com.example.weatherapp.adapters.DailyForecastAdapter;
+import com.example.weatherapp.models.DailyForecastModel;
 import com.example.weatherapp.models.ForecastModel;
 import com.example.weatherapp.models.WeatherModel;
 import com.google.android.gms.location.*;
@@ -27,6 +28,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -86,6 +91,16 @@ public class MainActivity extends AppCompatActivity {
             );
         });
 
+        String lastCity = prefs.getString("last_city", null);
+        float lastLat = prefs.getFloat("last_lat", -1f);
+        float lastLon = prefs.getFloat("last_lon", -1f);
+
+        if (lastCity != null) {
+            fetchWeather(lastCity);
+        } else if (lastLat != -1 && lastLon != -1) {
+            fetchWeatherByCoordinates(lastLat, lastLon);
+        }
+
         scheduleDailyWeatherNotification();
 
         btnLogout.setOnClickListener(v -> {
@@ -100,6 +115,11 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Enter a city name", Toast.LENGTH_SHORT).show();
                 return;
             }
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("last_city", city);
+            editor.remove("last_lat");
+            editor.remove("last_lon");
+            editor.apply();
             fetchWeather(city);
         });
 
@@ -123,6 +143,51 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private List<DailyForecastModel> groupForecastIntoDailyList(List<ForecastModel.ForecastItem> forecastList) {
+        Map<String, List<ForecastModel.ForecastItem>> groupedMap = new LinkedHashMap<>();
+
+        for (ForecastModel.ForecastItem item : forecastList) {
+            String date = item.dt_txt.split(" ")[0];
+            groupedMap.computeIfAbsent(date, k -> new ArrayList<>()).add(item);
+        }
+
+        List<DailyForecastModel> dailyList = new ArrayList<>();
+        int count = 0;
+
+        for (Map.Entry<String, List<ForecastModel.ForecastItem>> entry : groupedMap.entrySet()) {
+            if (count++ == 5) break;
+
+            List<ForecastModel.ForecastItem> items = entry.getValue();
+            float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
+            String iconCode = "";
+
+            for (ForecastModel.ForecastItem fi : items) {
+                float temp = (float) fi.main.temp;
+                min = Math.min(min, temp);
+                max = Math.max(max, temp);
+            }
+
+            if (!items.isEmpty() && items.get(0).weather != null && items.get(0).weather.length > 0 && items.get(0).weather[0] != null) {
+                iconCode = items.get(0).weather[0].icon;
+            }
+
+
+            String dayName;
+            try {
+                DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date date = format.parse(entry.getKey());
+                SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+                dayName = dayFormat.format(date);
+            } catch (ParseException e) {
+                dayName = entry.getKey();
+            }
+
+            dailyList.add(new DailyForecastModel(dayName, min, max, iconCode, entry.getKey()));
+        }
+
+        return dailyList;
+    }
+
     private void fetchWeather(String city) {
         String url = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + API_KEY + "&units=metric";
         String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + API_KEY + "&units=metric";
@@ -139,11 +204,19 @@ public class MainActivity extends AppCompatActivity {
 
         queue.add(new StringRequest(Request.Method.GET, forecastUrl, response -> {
             ForecastModel forecastModel = new Gson().fromJson(response, ForecastModel.class);
-            rvForecast.setAdapter(new ForecastAdapter(forecastModel.list));
+            Global.forecastList = forecastModel.list;
+            List<DailyForecastModel> dailySummaries = groupForecastIntoDailyList(forecastModel.list);
+            rvForecast.setAdapter(new DailyForecastAdapter(MainActivity.this, dailySummaries));
         }, error -> Toast.makeText(this, "Forecast fetch failed!", Toast.LENGTH_SHORT).show()));
     }
 
     private void fetchWeatherByCoordinates(double lat, double lon) {
+        SharedPreferences.Editor editor = getSharedPreferences("settings", MODE_PRIVATE).edit();
+        editor.putFloat("last_lat", (float) lat);
+        editor.putFloat("last_lon", (float) lon);
+        editor.remove("last_city");
+        editor.apply();
+
         String url = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" + API_KEY + "&units=metric";
         String forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?lat=" + lat + "&lon=" + lon + "&appid=" + API_KEY + "&units=metric";
 
@@ -160,7 +233,9 @@ public class MainActivity extends AppCompatActivity {
 
         queue.add(new StringRequest(Request.Method.GET, forecastUrl, response -> {
             ForecastModel forecastModel = new Gson().fromJson(response, ForecastModel.class);
-            rvForecast.setAdapter(new ForecastAdapter(forecastModel.list));
+            Global.forecastList = forecastModel.list;
+            List<DailyForecastModel> dailySummaries = groupForecastIntoDailyList(forecastModel.list);
+            rvForecast.setAdapter(new DailyForecastAdapter(MainActivity.this, dailySummaries));
         }, error -> Toast.makeText(this, "Location forecast fetch failed!", Toast.LENGTH_SHORT).show()));
     }
 
@@ -171,57 +246,27 @@ public class MainActivity extends AppCompatActivity {
     private String getSuggestion(float temp, String condition) {
         StringBuilder suggestion = new StringBuilder();
 
-        // 1. Add weather condition advice
         switch (condition.toLowerCase()) {
-            case "rain":
-                suggestion.append("☔ It's raining. Keep an umbrella and waterproof shoes.\n");
-                break;
-            case "clear":
-                suggestion.append("☀️ Clear skies. Perfect for outdoor plans!\n");
-                break;
-            case "snow":
-                suggestion.append("❄️ Snow outside. Roads may be slippery. Wear boots.\n");
-                break;
-            case "clouds":
-                suggestion.append("⛅ Overcast skies. It might feel gloomy — keep a light jacket.\n");
-                break;
-            case "thunderstorm":
-                suggestion.append("🌩️ Thunderstorm warning. Stay indoors for safety.\n");
-                break;
-            case "drizzle":
-                suggestion.append("🌦️ Light drizzle expected. A raincoat might help.\n");
-                break;
-            case "fog":
-            case "mist":
-                suggestion.append("🌫️ Foggy outside. Drive carefully with lights on.\n");
-                break;
-            case "haze":
-            case "smoke":
-                suggestion.append("🌁 Low air quality. Avoid long exposure outdoors.\n");
-                break;
-            default:
-                suggestion.append("🌤️ Mixed weather. Stay updated on hourly changes.\n");
-                break;
+            case "rain": suggestion.append("☔ It's raining. Keep an umbrella and waterproof shoes.\n"); break;
+            case "clear": suggestion.append("☀️ Clear skies. Perfect for outdoor plans!\n"); break;
+            case "snow": suggestion.append("❄️ Snow outside. Roads may be slippery. Wear boots.\n"); break;
+            case "clouds": suggestion.append("⛅ Overcast skies. It might feel gloomy — keep a light jacket.\n"); break;
+            case "thunderstorm": suggestion.append("🌩️ Thunderstorm warning. Stay indoors for safety.\n"); break;
+            case "drizzle": suggestion.append("🌦️ Light drizzle expected. A raincoat might help.\n"); break;
+            case "fog": case "mist": suggestion.append("🌫️ Foggy outside. Drive carefully with lights on.\n"); break;
+            case "haze": case "smoke": suggestion.append("🌁 Low air quality. Avoid long exposure outdoors.\n"); break;
+            default: suggestion.append("🌤️ Mixed weather. Stay updated on hourly changes.\n"); break;
         }
 
-        // 2. Add temperature-based advice
-        if (temp < 0) {
-            suggestion.append("🌡️ Temp: " + temp + "°C. Freezing! Wear thermal layers.");
-        } else if (temp < 5) {
-            suggestion.append("🌡️ Temp: " + temp + "°C. Very cold — bundle up!");
-        } else if (temp < 15) {
-            suggestion.append("🌡️ Temp: " + temp + "°C. Chilly — carry a jacket.");
-        } else if (temp < 25) {
-            suggestion.append("🌡️ Temp: " + temp + "°C. Pleasant — light clothes will work.");
-        } else if (temp < 32) {
-            suggestion.append("🌡️ Temp: " + temp + "°C. Warm — stay cool and hydrated.");
-        } else {
-            suggestion.append("🌡️ Temp: " + temp + "°C. Very hot — avoid staying out long.");
-        }
+        if (temp < 0) suggestion.append("🌡️ Temp: " + temp + "°C. Freezing! Wear thermal layers.");
+        else if (temp < 5) suggestion.append("🌡️ Temp: " + temp + "°C. Very cold — bundle up!");
+        else if (temp < 15) suggestion.append("🌡️ Temp: " + temp + "°C. Chilly — carry a jacket.");
+        else if (temp < 25) suggestion.append("🌡️ Temp: " + temp + "°C. Pleasant — light clothes will work.");
+        else if (temp < 32) suggestion.append("🌡️ Temp: " + temp + "°C. Warm — stay cool and hydrated.");
+        else suggestion.append("🌡️ Temp: " + temp + "°C. Very hot — avoid staying out long.");
 
         return suggestion.toString();
     }
-
 
     private void scheduleDailyWeatherNotification() {
         Constraints constraints = new Constraints.Builder()

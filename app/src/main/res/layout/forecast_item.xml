@@ -41,5 +41,12 @@
             android:textColor="#666666"
             android:layout_marginTop="2dp" />
 
+        <!-- New ImageView for weather icon -->
+        <ImageView
+            android:id="@+id/ivHourlyIcon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="Weather Icon" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

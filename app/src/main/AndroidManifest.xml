@@ -19,6 +19,12 @@
         android:theme="@style/Theme.WeatherApp"
         tools:targetApi="31">
 
+        <!-- Hourly Forecast Activity -->
+        <activity
+            android:name=".HourlyForecastActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WeatherApp" />
+
         <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
