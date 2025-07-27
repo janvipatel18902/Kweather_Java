@@ -16,5 +16,7 @@
     <string name="register">Register</string>
     <string name="already_have_account">Already have an account? Login</string>
     <string name="do_not_have_account">do_not_have_account</string>
+    <string name="smart_suggestion_will_appear_here">Smart suggestion will appear here.</string>
+    <string name="weather_clouds">Weather: Clouds</string>
 
 </resources>

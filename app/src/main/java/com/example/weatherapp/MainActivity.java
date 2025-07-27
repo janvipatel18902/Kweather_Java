@@ -82,13 +82,17 @@ public class MainActivity extends AppCompatActivity {
 
         Switch switchTheme = findViewById(R.id.switchTheme);
         switchTheme.setChecked(isDark);
+
         switchTheme.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("dark_mode", isChecked);
+            editor.putBoolean("dark_mode", isChecked); // Save preference
             editor.apply();
+
             AppCompatDelegate.setDefaultNightMode(
                     isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
             );
+
+            recreate();
         });
 
         String lastCity = prefs.getString("last_city", null);

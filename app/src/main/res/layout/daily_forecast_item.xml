@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
-    android:background="#2196F3"
+    android:background="@drawable/item_background"
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:elevation="4dp">
+    android:elevation="4dp"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp">
 
     <TextView
         android:id="@+id/tvDay"
-        android:textColor="#FFFFFF"
+        android:textColor="#1976D2"
         android:textSize="18sp"
+        android:textStyle="bold"
         android:layout_weight="1"
         android:layout_width="0dp"
         android:layout_height="wrap_content" />
 
     <TextView
         android:id="@+id/tvTempRange"
-        android:textColor="#FFFFFF"
+        android:textColor="#03ADC3"
         android:textSize="16sp"
+        android:layout_marginEnd="12dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="12dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="4dp"
         android:contentDescription="Weather Icon" />
 </LinearLayout>

@@ -3,50 +3,58 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    card_view:cardCornerRadius="12dp"
-    card_view:cardElevation="6dp"
+    android:layout_margin="12dp"
+    card_view:cardCornerRadius="16dp"
+    card_view:cardElevation="8dp"
     android:background="@android:color/transparent">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="@drawable/hourly_card_background">
 
-        <TextView
-            android:id="@+id/tvTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="DateTime"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#333333" />
-
-        <TextView
-            android:id="@+id/tvTemp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Temp: 24.9°C"
-            android:textSize="14sp"
-            android:textColor="#444444"
-            android:layout_marginTop="4dp" />
-
-        <TextView
-            android:id="@+id/tvWeather"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Weather: Clouds"
-            android:textSize="14sp"
-            android:textColor="#666666"
-            android:layout_marginTop="2dp" />
-
-        <!-- New ImageView for weather icon -->
         <ImageView
             android:id="@+id/ivHourlyIcon"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
             android:contentDescription="Weather Icon" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DateTime"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#212121" />
+
+            <TextView
+                android:id="@+id/tvTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Temp: 24.9°C"
+                android:textSize="15sp"
+                android:textColor="#424242"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvWeather"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/weather_clouds"
+                android:textSize="15sp"
+                android:textColor="#616161"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
